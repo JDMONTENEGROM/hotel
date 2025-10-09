@@ -1,0 +1,20 @@
+solucionar la compatibilidad de laravel 8 Instala las dependencias de Node en el proyecto
+>npm install
+En desarrollo puedes usar:
+>npm run dev
+Esto:
+
+Arranca Vite en modo desarrollo.
+
+Compila y sirve los assets (SASS, JS, CSS).
+
+👉 No cierres esta consola mientras trabajas. Vite recompila automáticamente cuando guardes cambios.
+4️⃣ Abre otra terminal (opcional)
+
+En otra consola diferente puedes levantar el servidor Laravel:
+
+php artisan serve
+
+
+y entrar a
+👉 http://127.0.0.1:8000
