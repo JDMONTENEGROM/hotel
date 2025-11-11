@@ -4,12 +4,14 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChartController;
 use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomStatusController;
 use App\Http\Controllers\TransactionController;
@@ -81,6 +83,31 @@ Route::group(['middleware' => ['auth', 'checkRole:Super']], function () {
     Route::get('/payment/{payment}/invoice', [PaymentController::class, 'invoice'])->name('payment.invoice');
     Route::get('/get-dialy-guest-chart-data', [ChartController::class, 'dailyGuestPerMonth']);
     Route::get('/get-dialy-guest/{year}/{month}/{day}', [ChartController::class, 'dailyGuest'])->name('chart.dailyGuest');
+    
+    // Reportes de ocupación e ingresos
+    Route::get('/reports/modal', [ReportController::class, 'showModal'])->name('reports.modal');
+    Route::post('/reports/generate', [ReportController::class, 'generateReport'])->name('reports.generate');
+    Route::post('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
+    
+    // Configuración del sistema
+    Route::prefix('configuration')->name('configuration.')->group(function () {
+        Route::get('/', [ConfigurationController::class, 'index'])->name('index');
+        Route::post('/hotel-settings', [ConfigurationController::class, 'updateHotelSettings'])->name('hotel-settings');
+        Route::post('/system-preferences', [ConfigurationController::class, 'updateSystemPreferences'])->name('system-preferences');
+        Route::post('/security-settings', [ConfigurationController::class, 'updateSecuritySettings'])->name('security-settings');
+        
+        // Copias de seguridad
+        Route::post('/backups/create', [ConfigurationController::class, 'createBackup'])->name('backups.create');
+        Route::get('/backups/{backup}/download', [ConfigurationController::class, 'downloadBackup'])->name('backups.download');
+        Route::delete('/backups/{backup}', [ConfigurationController::class, 'deleteBackup'])->name('backups.delete');
+        
+        // Roles y permisos
+        Route::post('/roles', [ConfigurationController::class, 'createRole'])->name('roles.create');
+        Route::put('/roles/{role}', [ConfigurationController::class, 'updateRole'])->name('roles.update');
+        Route::delete('/roles/{role}', [ConfigurationController::class, 'deleteRole'])->name('roles.delete');
+        Route::post('/roles/assign', [ConfigurationController::class, 'assignRoleToUser'])->name('roles.assign');
+        Route::post('/roles/remove', [ConfigurationController::class, 'removeRoleFromUser'])->name('roles.remove');
+    });
 });
 
 Route::group(['middleware' => ['auth', 'checkRole:Super,Admin,Customer']], function () {

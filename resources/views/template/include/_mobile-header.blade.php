@@ -322,24 +322,22 @@
                         </div>
                     </div>
 
-                    <!-- Analytics -->
-                    <div class="nav-section">
-                        <div class="nav-section-title">Análisis</div>
-
-                        <a href="#" class="nav-item">
-                            <div class="nav-icon">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <div class="nav-content">
-                                <div class="nav-title">Reportes</div>
-                                <div class="nav-subtitle">Financiero y Análisis</div>
-                            </div>
-                        </a>
-                    </div>
-
                     <!-- Administration -->
                     <div class="nav-section">
                         <div class="nav-section-title">Administración</div>
+
+                        @if (auth()->user()->role == 'Super')
+                            <!-- Reports -->
+                            <a href="#" class="nav-item" id="mobileReportsMenuItem">
+                                <div class="nav-icon">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <div class="nav-content">
+                                    <div class="nav-title">Reportes</div>
+                                    <div class="nav-subtitle">Ocupación e Ingresos</div>
+                                </div>
+                            </a>
+                        @endif
 
                         <a href="#" class="nav-item">
                             <div class="nav-icon">
@@ -364,3 +362,62 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileReportsMenuItem = document.getElementById('mobileReportsMenuItem');
+    
+    if (mobileReportsMenuItem) {
+        mobileReportsMenuItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Cerrar el offcanvas móvil
+            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('mobileOffcanvas'));
+            if (offcanvas) {
+                offcanvas.hide();
+            }
+            
+            // Cargar y mostrar el modal de reportes
+            fetch('{{ route("reports.modal") }}', {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Crear un contenedor temporal para el modal
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Agregar el modal al body
+                document.body.appendChild(tempDiv.firstElementChild);
+                
+                // Mostrar el modal
+                const modalElement = document.getElementById('reportModal');
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                    
+                    // Limpiar cuando se cierre el modal
+                    modalElement.addEventListener('hidden.bs.modal', function() {
+                        document.body.removeChild(this);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar el modal:', error);
+                alert('Error al cargar el modal de reportes');
+            });
+        });
+    }
+});
+</script>

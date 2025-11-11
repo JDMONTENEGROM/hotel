@@ -13,6 +13,7 @@ use App\Repositories\Interface\RoomStatusRepositoryInterface;
 use App\Repositories\Interface\TypeRepositoryInterface;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RoomController extends Controller
 {
@@ -92,6 +93,7 @@ class RoomController extends Controller
 
         return response()->json([
             'view' => $view,
+            'room' => $room, // Agregar los datos de la habitación
         ]);
     }
 
@@ -107,8 +109,27 @@ class RoomController extends Controller
     public function destroy(Room $room, ImageRepositoryInterface $imageRepository)
     {
         try {
+            // Verificar si la habitación tiene transacciones activas
+            $activeTransactions = Transaction::where('room_id', $room->id)
+                ->where(function($query) {
+                    $query->where('check_in', '<=', now())
+                          ->where('check_out', '>=', now());
+                })
+                ->exists();
+
+            if ($activeTransactions) {
+                return response()->json([
+                    'message' => 'No se puede eliminar la habitación ' . $room->number . ' porque tiene reservas activas.',
+                ], 422);
+            }
+
+            // Eliminar relaciones en facility_room primero
+            \DB::table('facility_room')->where('room_id', $room->id)->delete();
+
+            // Eliminar la habitación
             $room->delete();
 
+            // Eliminar imágenes asociadas
             $path = 'img/room/'.$room->number;
             $path = public_path($path);
 
@@ -117,11 +138,11 @@ class RoomController extends Controller
             }
 
             return response()->json([
-                'message' => 'Room number '.$room->number.' deleted!',
+                'message' => 'Habitación ' . $room->number . ' eliminada correctamente!',
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Customer '.$room->number.' cannot be deleted! Error Code:'.$e->errorInfo[1],
+                'message' => 'No se puede eliminar la habitación ' . $room->number . '. Error: ' . $e->getMessage(),
             ], 500);
         }
     }

@@ -86,10 +86,10 @@
                             <small class="text-muted">Ocupación actual del hotel - {{ now()->locale('es')->isoFormat('dddd, D [de] MMMM YYYY') }}</small>
                         </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Exportar">
+                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Exportar" onclick="showReportsModal()">
                                 <i class="fas fa-download"></i>
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Actualizar">
+                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Actualizar" onclick="location.reload()">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
@@ -285,6 +285,35 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de Reportes -->
+    @include('dashboard.report-modal')
+@endsection
+
+@section('scripts')
+<script>
+// Función global para mostrar el modal de reportes
+function showReportsModal() {
+    console.log('Función showReportsModal llamada');
+    
+    const modalElement = document.getElementById('reportModal');
+    console.log('Modal encontrado:', modalElement);
+    
+    if (modalElement) {
+        try {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            console.log('Modal mostrado exitosamente');
+        } catch (error) {
+            console.error('Error al mostrar el modal:', error);
+            alert('Error al mostrar el modal: ' + error.message);
+        }
+    } else {
+        console.error('No se encontró el elemento del modal');
+        alert('Error: No se encontró el modal de reportes');
+    }
+}
+</script>
 @endsection
 {{-- @section('footer')
     <script src="{{ asset('style/js/chart.min.js') }}"></script>

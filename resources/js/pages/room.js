@@ -388,7 +388,26 @@ $(function () {
                 });
 
                 datatable.ajax.reload();
-            } catch (e) {}
+                loadRoomStatusCounts(); // Actualizar contadores
+            } catch (e) {
+                if (e && e.responseJSON && e.responseJSON.message) {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "error",
+                        title: e.responseJSON.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                    });
+                } else {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "error",
+                        title: "Error al eliminar la habitación",
+                        showConfirmButton: false,
+                        timer: 3000,
+                    });
+                }
+            }
         })
         .on("change", "#status", function () {
             datatable.ajax.reload();
