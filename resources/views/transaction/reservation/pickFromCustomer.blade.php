@@ -9,8 +9,9 @@
         <div class="row justify-content-md-center mt-4 my-3">
             <div class="col-lg-8 ">
             <form class="d-flex" method="GET" action="{{ route('transaction.reservation.pickFromCustomer') }}">
-                    <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar" id="search-user"
+                    <input list="cedula-suggestions" class="form-control me-2" type="search" placeholder="Buscar por cédula o nombre" aria-label="Buscar" id="search-user"
                         name="q" value="{{ request()->input('q') }}">
+                    <datalist id="cedula-suggestions"></datalist>
                     <button class="btn btn-outline-dark" type="submit">Buscar</button>
                 </form>
             </div>
@@ -51,6 +52,14 @@
                                                             <td>
                                                                 <span>
                                                                     {{ $customer->user->email }}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><i class="fas fa-id-card"></i></td>
+                                                            <td>
+                                                                <span>
+                                                                    {{ $customer->cedula ?? 'N/A' }}
                                                                 </span>
                                                             </td>
                                                         </tr>
@@ -115,4 +124,21 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('footer')
+<script>
+    function loadCedulaSuggestions(term) {
+        if (!term || term.length < 2) return;
+        $.get("{{ route('customer.suggest') }}", { q: term }, function(data) {
+            var list = $('#cedula-suggestions');
+            list.empty();
+            data.forEach(function(item) {
+                var display = item.cedula ? item.cedula + ' - ' + item.name : item.name;
+                list.append('<option value="' + (item.cedula || item.name) + '">' + display + '</option>');
+            });
+        });
+    }
+    $('#search-user').on('input', function() { loadCedulaSuggestions(this.value); });
+</script>
 @endsection

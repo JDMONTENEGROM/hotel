@@ -76,6 +76,14 @@
                             <tr>
                                 <td style="text-align: center; ">
                                     <span>
+                                        <i class="fas fa-id-card"></i>
+                                    </span>
+                                </td>
+                                <td>{{ $customer->cedula ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; ">
+                                    <span>
                                         <i class="fas fa-user-md"></i>
                                     </span>
                                 </td>

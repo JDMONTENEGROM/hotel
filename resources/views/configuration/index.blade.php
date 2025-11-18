@@ -160,3 +160,6 @@
 @push('scripts')
 <script src="{{ asset('js/pages/configuration.js') }}"></script>
 @endpush
+
+
+

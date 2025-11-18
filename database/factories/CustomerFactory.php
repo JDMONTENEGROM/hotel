@@ -24,6 +24,7 @@ class CustomerFactory extends Factory
     {
         return [
             'name' => $this->faker->name,
+            'cedula' => $this->faker->numerify('##########'),
             'address' => $this->faker->address,
             'gender' => $this->faker->randomElement(['Male', 'Female']),
             'job' => $this->faker->jobTitle,

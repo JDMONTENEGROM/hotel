@@ -26,8 +26,9 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
-                                                    <label for="document" class="form-label">{{ __('messages.guest_document') }}</label>
-                                                    <input type="text" class="form-control" id="document" name="document" required>
+                                                    <label for="document" class="form-label">Cédula o nombre</label>
+                                                    <input list="cedula-suggestions" type="text" class="form-control" id="document" name="document" required>
+                                                    <datalist id="cedula-suggestions"></datalist>
                                                 </div>
                                             </div>
                                             <div class="col-md-6 d-flex align-items-end">
@@ -93,6 +94,7 @@
                                 <div class="col-md-6">
                                     <p><strong>Fecha de nacimiento:</strong> ${response.customer.birthdate}</p>
                                     <p><strong>Género:</strong> ${response.customer.gender}</p>
+                                    <p><strong>Cédula:</strong> ${response.customer.cedula || 'N/A'}</p>
                                     <p><strong>ID:</strong> ${response.customer.id}</p>
                                 </div>
                             </div>
@@ -122,6 +124,18 @@
                         text: 'Ha ocurrido un error al buscar el huésped'
                     });
                 }
+            });
+        });
+        $('#document').on('input', function() {
+            var term = this.value;
+            if (!term || term.length < 2) return;
+            $.get("{{ route('customer.suggest') }}", { q: term }, function(data) {
+                var list = $('#cedula-suggestions');
+                list.empty();
+                data.forEach(function(item) {
+                    var display = item.cedula ? item.cedula + ' - ' + item.name : item.name;
+                    list.append('<option value="' + (item.cedula || item.name) + '">' + display + '</option>');
+                });
             });
         });
     });

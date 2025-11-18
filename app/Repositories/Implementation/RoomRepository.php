@@ -11,10 +11,10 @@ class RoomRepository implements RoomRepositoryInterface
     {
         return Room::with('type', 'roomStatus')
             ->orderBy('number')
-            ->when($request->status, function ($query) use ($request) {
+            ->when(is_numeric($request->status), function ($query) use ($request) {
                 $query->where('room_status_id', $request->status);
             })
-            ->when($request->type, function ($query) use ($request) {
+            ->when(is_numeric($request->type), function ($query) use ($request) {
                 $query->where('type_id', $request->type);
             })
             ->when($request->search, function ($query) use ($request) {
@@ -49,10 +49,10 @@ class RoomRepository implements RoomRepositoryInterface
             'rooms.price',
             'room_statuses.name as status',
         )
-            ->when($request->status !== 'All', function ($query) use ($request) {
+            ->when((function($v){ $v = strtolower((string)$v); return ! in_array($v, ['all', 'todos', ''], true); })($request->status), function ($query) use ($request) {
                 $query->where('room_status_id', $request->status);
             })
-            ->when($request->type !== 'All', function ($query) use ($request) {
+            ->when((function($v){ $v = strtolower((string)$v); return ! in_array($v, ['all', 'todos', ''], true); })($request->type), function ($query) use ($request) {
                 $query->where('type_id', $request->type);
             })
             ->leftJoin('types', 'rooms.type_id', '=', 'types.id')

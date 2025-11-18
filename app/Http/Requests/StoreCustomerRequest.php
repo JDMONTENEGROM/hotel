@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCustomerRequest extends FormRequest
 {
@@ -27,22 +28,26 @@ class StoreCustomerRequest extends FormRequest
         if ($this->isMethod('put')) {
             return [
                 'name' => 'required',
-                'address' => 'required|max:255',
-                'job' => 'required',
-                'birthdate' => 'required|date',
+                'cedula' => [
+                    'nullable',
+                    'regex:/^\d{6,20}$/',
+                    Rule::unique('customers', 'cedula')->ignore($this->route('customer')->id ?? null),
+                ],
+                'address' => 'nullable|max:255',
+                'job' => 'nullable|string',
+                'birthdate' => 'nullable|date',
                 'gender' => 'required|in:Male,Female',
-                'avatar' => 'mimes:png,jpg',
             ];
         }
 
         return [
             'name' => 'required',
-            'address' => 'required|max:255',
-            'job' => 'required',
-            'birthdate' => 'required|date',
+            'cedula' => ['nullable', 'regex:/^\d{6,20}$/', 'unique:customers,cedula'],
+            'address' => 'nullable|max:255',
+            'job' => 'nullable|string',
+            'birthdate' => 'nullable|date',
             'gender' => 'required|in:Male,Female',
             'email' => 'required|unique:users,email',
-            'avatar' => 'mimes:png,jpg',
         ];
     }
 }

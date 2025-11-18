@@ -64,6 +64,7 @@ Route::group(['middleware' => ['auth', 'checkRole:Super,Admin']], function () {
 // Rutas accesibles para Super y Admin
 Route::group(['middleware' => ['auth', 'checkRole:Super,Admin']], function () {
     Route::resource('customer', CustomerController::class);
+    Route::get('/customer/suggest', [CustomerController::class, 'suggest'])->name('customer.suggest');
     Route::resource('transaction', TransactionController::class);
     Route::resource('facility', FacilityController::class);
 

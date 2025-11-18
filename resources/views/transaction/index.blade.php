@@ -19,8 +19,9 @@
         </div>
         <div class="col-lg-6 mb-2">
             <form class="d-flex" method="GET" action="{{ route('transaction.index') }}">
-                <input class="form-control me-2" type="search" placeholder="Buscar por ID" aria-label="Search"
+                <input list="cedula-suggestions" class="form-control me-2" type="search" placeholder="Buscar por cédula, nombre, ID de transacción o habitación" aria-label="Search"
                     id="search-user" name="search" value="{{ request()->input('search') }}">
+                <datalist id="cedula-suggestions"></datalist>
                 <button class="btn btn-outline-dark" type="submit">Buscar</button>
             </form>
         </div>
@@ -41,6 +42,7 @@
                                     <th>#</th>
                                     <th>ID</th>
                                     <th>Cliente</th>
+                                    <th>Cédula</th>
                                     <th>Habitación</th>
                                     <th>Entrada</th>
                                     <th>Salida</th>
@@ -58,6 +60,7 @@
                                         </th>
                                         <td>{{ $transaction->id }}</td>
                                         <td>{{ $transaction->customer->name }}</td>
+                                        <td>{{ $transaction->customer->cedula ?? 'N/A' }}</td>
                                         <td>{{ $transaction->room->number }}</td>
                                         <td>{{ Helper::dateFormat($transaction->check_in) }}</td>
                                         <td>{{ Helper::dateFormat($transaction->check_out) }}</td>
@@ -109,6 +112,7 @@
                                     <th>#</th>
                                     <th>ID</th>
                                     <th>Cliente</th>
+                                    <th>Cédula</th>
                                     <th>Habitación</th>
                                     <th>Entrada</th>
                                     <th>Salida</th>
@@ -126,6 +130,7 @@
                                     </th>
                                     <td>{{ $transaction->id }}</td>
                                     <td>{{ $transaction->customer->name }}</td>
+                                    <td>{{ $transaction->customer->cedula ?? 'N/A' }}</td>
                                     <td>{{ $transaction->room->number }}</td>
                                     <td>{{ Helper::dateFormat($transaction->check_in) }}</td>
                                     <td>{{ Helper::dateFormat($transaction->check_out) }}</td>
@@ -189,4 +194,25 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('footer')
+<script>
+    (function(){
+        var input = document.getElementById('search-user');
+        if (!input) return;
+        input.addEventListener('input', function(){
+            var term = this.value;
+            if (!term || term.length < 2) return;
+            $.get("{{ route('customer.suggest') }}", { q: term }, function(data) {
+                var list = $('#cedula-suggestions');
+                list.empty();
+                data.forEach(function(item) {
+                    var display = item.cedula ? item.cedula + ' - ' + item.name : item.name;
+                    list.append('<option value="' + (item.cedula || item.name) + '">' + display + '</option>');
+                });
+            });
+        });
+    })();
+</script>
 @endsection

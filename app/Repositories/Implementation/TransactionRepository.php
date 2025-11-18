@@ -24,10 +24,20 @@ class TransactionRepository implements TransactionRepositoryInterface
 
     public function getTransaction($request)
     {
+        $term = trim($request->search ?? '');
         return Transaction::with('user', 'room', 'customer')
             ->where('check_out', '>=', Carbon::now())
-            ->when(! empty($request->search), function ($query) use ($request) {
-                $query->where('id', '=', $request->search);
+            ->when($term !== '', function ($query) use ($term) {
+                $query->where(function ($q) use ($term) {
+                    $q->where('transactions.id', '=', $term)
+                      ->orWhereHas('customer', function ($qc) use ($term) {
+                          $qc->where('cedula', 'like', $term.'%')
+                             ->orWhere('name', 'like', '%'.$term.'%');
+                      })
+                      ->orWhereHas('room', function ($qr) use ($term) {
+                          $qr->where('number', 'like', '%'.$term.'%');
+                      });
+                });
             })
             ->orderBy('check_out', 'ASC')->orderBy('id', 'DESC')->paginate(20)
             ->appends($request->all());
@@ -35,9 +45,19 @@ class TransactionRepository implements TransactionRepositoryInterface
 
     public function getTransactionExpired($request)
     {
+        $term = trim($request->search ?? '');
         return Transaction::with('user', 'room', 'customer')->where('check_out', '<', Carbon::now())
-            ->when(! empty($request->search), function ($query) use ($request) {
-                $query->where('id', '=', $request->search);
+            ->when($term !== '', function ($query) use ($term) {
+                $query->where(function ($q) use ($term) {
+                    $q->where('transactions.id', '=', $term)
+                      ->orWhereHas('customer', function ($qc) use ($term) {
+                          $qc->where('cedula', 'like', $term.'%')
+                             ->orWhere('name', 'like', '%'.$term.'%');
+                      })
+                      ->orWhereHas('room', function ($qr) use ($term) {
+                          $qr->where('number', 'like', '%'.$term.'%');
+                      });
+                });
             })
             ->orderBy('check_out', 'ASC')->paginate(20)
             ->appends($request->all());

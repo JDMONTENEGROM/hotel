@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/js/app.js',
             ],
             refresh: true,
+            hotFile: 'public/hot',
         }),
         viteCompression(),
     ],

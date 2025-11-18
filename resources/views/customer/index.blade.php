@@ -39,8 +39,9 @@
                 </div>
                 <div class="col-lg-6 mb-2">
                     <form class="d-flex" method="GET" action="{{ route('customer.index') }}">
-                        <input class="form-control me-2" type="search" placeholder="Buscar por nombre" aria-label="Search" id="search"
-                            name="search" value="{{ request()->input('search') }}">
+                        <input list="cedula-suggestions" class="form-control me-2" type="search" placeholder="Buscar por cédula o nombre" aria-label="Search" id="search"
+                            name="q" value="{{ request()->input('q') }}">
+                        <datalist id="cedula-suggestions"></datalist>
                         <button class="btn btn-outline-dark" type="submit">Buscar</button>
                     </form>
                 </div>
@@ -103,6 +104,14 @@
                                                                 </td>
                                                             </tr>
                                                             <tr>
+                                                                <td><i class="fas fa-id-card"></i></td>
+                                                                <td>
+                                                                    <span>
+                                                                        {{ $customer->cedula ?? 'N/A' }}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
                                                                 <td><i class="fas fa-user-md"></i></td>
                                                                 <td>
                                                                     <span>
@@ -160,6 +169,18 @@
 
 @section('footer')
 <script>
+    function loadCedulaSuggestions(term) {
+        if (!term || term.length < 2) return;
+        $.get("{{ route('customer.suggest') }}", { q: term }, function(data) {
+            var list = $('#cedula-suggestions');
+            list.empty();
+            data.forEach(function(item) {
+                var display = item.cedula ? item.cedula + ' - ' + item.name : item.name;
+                list.append('<option value="' + (item.cedula || item.name) + '">' + display + '</option>');
+            });
+        });
+    }
+    $('#search').on('input', function() { loadCedulaSuggestions(this.value); });
     $('.delete').click(function() {
         var customer_id = $(this).attr('customer-id');
         var customer_name = $(this).attr('customer-name');

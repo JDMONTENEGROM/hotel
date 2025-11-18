@@ -22,6 +22,23 @@ class CustomerController extends Controller
         return view('customer.index', ['customers' => $customers]);
     }
 
+    public function suggest(Request $request)
+    {
+        $q = $request->get('q');
+        if (! $q || strlen($q) < 2) {
+            return response()->json([]);
+        }
+        $results = \App\Models\Customer::select('id', 'name', 'cedula')
+            ->where(function ($query) use ($q) {
+                $query->where('cedula', 'like', $q.'%')
+                      ->orWhere('name', 'like', '%'.$q.'%');
+            })
+            ->orderByRaw("CASE WHEN cedula LIKE ? THEN 0 ELSE 1 END", [$q.'%'])
+            ->limit(10)
+            ->get();
+        return response()->json($results);
+    }
+
     public function create()
     {
         return view('customer.create');

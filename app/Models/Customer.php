@@ -12,6 +12,7 @@ class Customer extends Model
 
     protected $fillable = [
         'name',
+        'cedula',
         'address',
         'job',
         'birthdate',

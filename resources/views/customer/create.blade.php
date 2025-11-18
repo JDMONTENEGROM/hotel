@@ -8,14 +8,23 @@
                     <h2>Agregar Cliente</h2>
                 </div>
                 <div class="card-body p-3">
-                    <form class="row g-3" method="POST" action="{{ route('customer.store') }}"
-                        enctype="multipart/form-data">
+                    <form class="row g-3" method="POST" action="{{ route('customer.store') }}">
                         @csrf
                         <div class="col-md-12">
                             <label for="name" class="form-label">Nombre</label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
                                 name="name" value="{{ old('name') }}">
                             @error('name')
+                                <div class="text-danger mt-1">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                        <div class="col-md-12">
+                            <label for="cedula" class="form-label">Cédula</label>
+                            <input type="text" class="form-control @error('cedula') is-invalid @enderror" id="cedula"
+                                name="cedula" value="{{ old('cedula') }}" placeholder="Ingrese el número de cédula">
+                            @error('cedula')
                                 <div class="text-danger mt-1">
                                     {{ $message }}
                                 </div>
@@ -75,15 +84,7 @@
                                 </div>
                             @enderror
                         </div>
-                        <div class="col-mg-12">
-                            <label for="avatar" class="form-label">Foto de perfil</label>
-                            <input class="form-control" type="file" name="avatar" id="avatar">
-                            @error('avatar')
-                                <div class="text-danger mt-1">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+                        
                         <div class="col-12">
                             <button type="submit" class="btn myBtn shadow-sm border float-end">Guardar</button>
                         </div>

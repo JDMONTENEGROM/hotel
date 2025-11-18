@@ -84,7 +84,7 @@
                                 <i class="fas fa-toggle-on me-1"></i>Estado
                             </label>
                             <select id="status" class="form-select" aria-label="Choose status">
-                                <option selected>Todos</option>
+                                <option value="All" selected>Todos</option>
                                 @forelse ($roomStatuses as $roomStatus)
                                     <option value="{{ $roomStatus->id }}">{{ $roomStatus->name }}</option>
                                 @empty
@@ -99,7 +99,7 @@
                                 <i class="fas fa-home me-1"></i>Tipo
                             </label>
                             <select id="type" class="form-select" aria-label="Choose type">
-                                <option selected>Todos</option>
+                                <option value="All" selected>Todos</option>
                                 @forelse ($types as $type)
                                     <option value="{{ $type->id }}">{{ $type->name }}</option>
                                 @empty

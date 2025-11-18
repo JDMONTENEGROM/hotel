@@ -10,6 +10,7 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Models\Customer;
 use App\Models\Room;
 use App\Models\Transaction;
+use App\Models\RoomStatus;
 use App\Models\User;
 use App\Notifications\NewRoomReservationDownPayment;
 use App\Repositories\Interface\CustomerRepositoryInterface;
@@ -17,6 +18,8 @@ use App\Repositories\Interface\PaymentRepositoryInterface;
 use App\Repositories\Interface\ReservationRepositoryInterface;
 use App\Repositories\Interface\TransactionRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class TransactionRoomReservationController extends Controller
 {
@@ -112,9 +115,22 @@ class TransactionRoomReservationController extends Controller
             return redirect()->back()->with('failed', 'Sorry, room '.$room->number.' already occupied');
         }
 
-        $transaction = $transactionRepository->store($request, $customer, $room);
-        $status = 'Down Payment';
-        $payment = $paymentRepository->store($request, $transaction, $status);
+        $transaction = null;
+        $payment = null;
+        DB::transaction(function () use ($request, $customer, $room, $transactionRepository, $paymentRepository, &$transaction, &$payment) {
+            $transaction = $transactionRepository->store($request, $customer, $room);
+            $status = 'Down Payment';
+            $payment = $paymentRepository->store($request, $transaction, $status);
+
+            $now = Carbon::now()->format('Y-m-d');
+            $start = Carbon::parse($request->check_in)->format('Y-m-d');
+            $end = Carbon::parse($request->check_out)->format('Y-m-d');
+
+            if ($now >= $start && $now < $end) {
+                $occupiedId = RoomStatus::where('code', 'O')->value('id') ?? 2;
+                $room->update(['room_status_id' => $occupiedId]);
+            }
+        });
 
         $superAdmins = User::where('role', 'Super')->get();
 

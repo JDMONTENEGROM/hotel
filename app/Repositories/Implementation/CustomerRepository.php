@@ -11,10 +11,15 @@ class CustomerRepository implements CustomerRepositoryInterface
 {
     public function get($request)
     {
+        $term = $request->q ?? $request->search ?? null;
         return Customer::with('user')->orderBy('id', 'DESC')
-            ->when($request->q, function ($query) use ($request) {
-                $query->where('name', 'Like', '%'.$request->q.'%')
-                    ->orWhere('id', 'Like', '%'.$request->q.'%');
+            ->when($term, function ($query) use ($term) {
+                $query->where(function ($q) use ($term) {
+                    $q->where('cedula', 'like', $term.'%')
+                      ->orWhere('cedula', 'like', '%'.$term.'%')
+                      ->orWhere('name', 'like', '%'.$term.'%')
+                      ->orWhere('id', 'like', '%'.$term.'%');
+                });
             })
             ->paginate(8)
             ->appends($request->all());
@@ -22,39 +27,35 @@ class CustomerRepository implements CustomerRepositoryInterface
 
     public function count($request)
     {
+        $term = $request->q ?? $request->search ?? null;
         return Customer::with('user')->orderBy('id', 'DESC')
-            ->when($request->q, function ($query) use ($request) {
-                $query->where('name', 'Like', '%'.$request->q.'%')
-                    ->orWhere('id', 'Like', '%'.$request->q.'%');
+            ->when($term, function ($query) use ($term) {
+                $query->where(function ($q) use ($term) {
+                    $q->where('cedula', 'like', $term.'%')
+                      ->orWhere('cedula', 'like', '%'.$term.'%')
+                      ->orWhere('name', 'like', '%'.$term.'%')
+                      ->orWhere('id', 'like', '%'.$term.'%');
+                });
             })
             ->count();
     }
 
     public static function store($request)
     {
+        $passwordSeed = $request->birthdate ?: Str::random(12);
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->birthdate),
+            'password' => bcrypt($passwordSeed),
             'role' => 'Customer',
             'random_key' => Str::random(60),
         ]);
 
-        if ($request->hasFile('avatar')) {
-            $path = 'img/user/'.$user->name.'-'.$user->id;
-            $path = public_path($path);
-            $file = $request->file('avatar');
-
-            $imageRepository = new ImageRepository;
-
-            $imageRepository->uploadImage($path, $file);
-
-            $user->avatar = $file->getClientOriginalName();
-            $user->save();
-        }
+        // Eliminado soporte de avatar: se usa imagen por defecto cuando no hay avatar
 
         return Customer::create([
             'name' => $user->name,
+            'cedula' => $request->cedula,
             'address' => $request->address,
             'job' => $request->job,
             'birthdate' => $request->birthdate,

@@ -7,11 +7,13 @@ use App\Helpers\Helper;
 use App\Models\Customer;
 use App\Models\Room;
 use App\Models\Transaction;
+use App\Models\RoomStatus;
 use App\Repositories\Interface\CustomerRepositoryInterface;
 use App\Repositories\Interface\PaymentRepositoryInterface;
 use App\Repositories\Interface\ReservationRepositoryInterface;
 use App\Repositories\Interface\TransactionRepositoryInterface;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class CheckInController extends Controller
@@ -30,8 +32,10 @@ class CheckInController extends Controller
 
     public function search(Request $request)
     {
-        $customer = Customer::where('id', $request->document)
-            ->orWhere('name', 'like', '%' . $request->document . '%')
+        $customer = Customer::where('cedula', $request->document)
+            ->orWhere('cedula', 'like', $request->document.'%')
+            ->orWhere('id', $request->document)
+            ->orWhere('name', 'like', '%'.$request->document.'%')
             ->first();
 
         if ($customer) {
@@ -55,9 +59,9 @@ class CheckInController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'address' => 'required',
-            'job' => 'required',
-            'birthdate' => 'required|date',
+            'address' => 'nullable|max:255',
+            'job' => 'nullable|string',
+            'birthdate' => 'nullable|date',
             'gender' => 'required|in:Male,Female',
         ]);
 
@@ -112,24 +116,23 @@ class CheckInController extends Controller
         $request->validate([
             'payment' => 'required|numeric|min:0',
         ]);
+        DB::transaction(function () use ($request, $customer, $room) {
+            $transaction = Transaction::create([
+                'user_id' => auth()->user()->id,
+                'customer_id' => $customer->id,
+                'room_id' => $room->id,
+                'check_in' => Carbon::now()->format('Y-m-d'),
+                'check_out' => Carbon::now()->addDay()->format('Y-m-d'),
+                'status' => 'Check In',
+            ]);
 
-        // Crear la transacción
-        $transaction = Transaction::create([
-            'user_id' => auth()->user()->id,
-            'customer_id' => $customer->id,
-            'room_id' => $room->id,
-            'check_in' => Carbon::now()->format('Y-m-d'),
-            'check_out' => Carbon::now()->addDay()->format('Y-m-d'),
-            'status' => 'Check In',
-        ]);
+            if ($request->payment > 0) {
+                $this->paymentRepository->store($request, $transaction, 'Payment');
+            }
 
-        // Registrar el pago si existe
-        if ($request->payment > 0) {
-            $this->paymentRepository->store($request, $transaction, 'Payment');
-        }
-
-        // Actualizar el estado de la habitación a ocupada
-        $room->update(['room_status_id' => 2]); // Asumiendo que 2 es el ID para habitaciones ocupadas
+            $occupiedId = RoomStatus::where('code', 'O')->value('id') ?? 2;
+            $room->update(['room_status_id' => $occupiedId]);
+        });
 
         event(new RefreshDashboardEvent('Nuevo check-in realizado'));
 
